@@ -1,10 +1,41 @@
 import React, { useState } from "react";
+import { auth, db } from "./firebase";
+import { signInWithEmailAndPassword, signOut } from "firebase/auth";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 
 export default function App() {
   const [user, setUser] = useState(null);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [announcement, setAnnouncement] = useState(
     "Welcome to All Ohio Roofing Training Portal"
   );
+
+  async function login() {
+    try {
+      const res = await signInWithEmailAndPassword(auth, email, password);
+      const ref = doc(db, "users", res.user.uid);
+      const snap = await getDoc(ref);
+
+      if (!snap.exists()) {
+        await setDoc(ref, {
+          email,
+          revenue: 0,
+          xp: 0,
+          role: "rep",
+        });
+      }
+
+      setUser(res.user);
+    } catch (err) {
+      alert("Login failed. Check email/password.");
+    }
+  }
+
+  function logout() {
+    signOut(auth);
+    setUser(null);
+  }
 
   const courses = [
     {
@@ -27,20 +58,35 @@ export default function App() {
 
   return (
     <div style={{ background: "#0f0f0f", color: "white", minHeight: "100vh", padding: 20 }}>
-      <h1>All Ohio Roofing Training</h1>
+      <h1>All Ohio Roofing LMS</h1>
 
       {!user ? (
-        <button onClick={() => setUser("Rep Logged In")}>
-          Login (Demo)
-        </button>
+        <div>
+          <h3>Rep Login</h3>
+          <input
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <br />
+          <input
+            placeholder="Password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <br />
+          <button onClick={login}>Login</button>
+        </div>
       ) : (
         <>
-          <h2>{announcement}</h2>
+          <p>{announcement}</p>
+          <button onClick={logout}>Logout</button>
 
-          <h3>Training Videos</h3>
+          <h2>Training Videos</h2>
           {courses.map((c) => (
             <div key={c.title} style={{ marginBottom: 30 }}>
-              <h4>{c.title}</h4>
+              <h3>{c.title}</h3>
               <iframe
                 width="100%"
                 height="315"
@@ -50,13 +96,6 @@ export default function App() {
               ></iframe>
             </div>
           ))}
-
-          <h3>Leaderboard (Demo)</h3>
-          <ul>
-            <li>Noah – $42,000</li>
-            <li>Rep A – $28,000</li>
-            <li>Rep B – $17,000</li>
-          </ul>
         </>
       )}
     </div>
