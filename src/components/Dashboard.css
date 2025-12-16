@@ -1,0 +1,166 @@
+.dashboard-container {
+  min-height: 100vh;
+  background: #232B2B;
+}
+
+.dashboard-header {
+  background: rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 20px 40px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dashboard-header-content {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.dashboard-logo {
+  display: flex;
+  align-items: center;
+}
+
+.dashboard-logo img {
+  max-width: 150px;
+  height: auto;
+}
+
+.dashboard-logo-placeholder {
+  width: 150px;
+  height: 60px;
+  background: #DC3D24;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFFFFF;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.dashboard-header h1 {
+  margin: 0;
+  color: #FFFFFF;
+  font-size: 24px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.header-actions span {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 14px;
+}
+
+.logout-button {
+  padding: 8px 20px;
+  background: #DC3D24;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background 0.3s;
+}
+
+.logout-button:hover {
+  background: #c03520;
+}
+
+.dashboard-content {
+  max-width: 1200px;
+  margin: 40px auto;
+  padding: 0 40px;
+}
+
+.dashboard-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 30px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.dashboard-card h2 {
+  margin: 0 0 20px 0;
+  color: #FFFFFF;
+  font-size: 22px;
+}
+
+.dashboard-card p {
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.6;
+  margin: 10px 0;
+}
+
+.dashboard-card strong {
+  color: #DC3D24;
+}
+
+.users-table {
+  overflow-x: auto;
+}
+
+.users-table table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.users-table th,
+.users-table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.users-table th {
+  background: rgba(220, 61, 36, 0.2);
+  font-weight: 600;
+  color: #FFFFFF;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.users-table td {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 14px;
+}
+
+.role-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.role-badge.admin {
+  background: rgba(220, 61, 36, 0.3);
+  color: #DC3D24;
+  border: 1px solid rgba(220, 61, 36, 0.5);
+}
+
+.role-badge.trainee {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.role-badge.user {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
