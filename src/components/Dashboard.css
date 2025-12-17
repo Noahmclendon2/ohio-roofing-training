@@ -1203,3 +1203,26 @@
   }
 }
 
+/* Delete User Button */
+.delete-user-btn {
+  background: rgba(220, 61, 36, 0.2);
+  border: 1px solid rgba(220, 61, 36, 0.4);
+  color: #DC3D24;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.delete-user-btn:hover:not(:disabled) {
+  background: rgba(220, 61, 36, 0.3);
+  border-color: rgba(220, 61, 36, 0.6);
+}
+
+.delete-user-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+

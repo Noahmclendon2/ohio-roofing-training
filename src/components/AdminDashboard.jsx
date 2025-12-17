@@ -16,6 +16,7 @@ export default function AdminDashboard() {
   const [editingEarnings, setEditingEarnings] = useState({}) // { userId: amount }
   const [activeSection, setActiveSection] = useState('users') // 'users' or 'leaderboard'
   const [addingAmounts, setAddingAmounts] = useState({}) // { userId: amountToAdd }
+  const [deletingUserId, setDeletingUserId] = useState(null) // userId being deleted
 
   useEffect(() => {
     fetchUsers()
@@ -230,6 +231,44 @@ export default function AdminDashboard() {
     }
   }
 
+  const handleDeleteUser = async (userId, userEmail) => {
+    if (!user) return
+    
+    // Prevent deleting yourself
+    if (userId === user.id) {
+      alert('You cannot delete your own account.')
+      return
+    }
+    
+    const confirmMessage = `Are you sure you want to delete the user "${userEmail}"?\n\nThis action cannot be undone and will permanently delete:\n- User profile\n- All quiz attempts\n- All leaderboard earnings\n- Authentication account`
+    
+    if (!window.confirm(confirmMessage)) {
+      return
+    }
+
+    try {
+      setDeletingUserId(userId)
+      
+      // Call the database function to delete from both user_profiles and auth.users
+      const { error } = await supabase.rpc('delete_user', {
+        user_id_to_delete: userId
+      })
+
+      if (error) throw error
+
+      // Refresh user list
+      await fetchUsers()
+      await fetchLeaderboard()
+      
+      alert('User deleted successfully.')
+    } catch (error) {
+      console.error('Error deleting user:', error)
+      alert(`Failed to delete user: ${error.message || 'Please try again or delete manually from Supabase dashboard.'}`)
+    } finally {
+      setDeletingUserId(null)
+    }
+  }
+
   const filteredUsers = users.filter((usr) => {
     if (!searchQuery.trim()) return true
     const searchLower = searchQuery.toLowerCase()
@@ -315,6 +354,7 @@ export default function AdminDashboard() {
                       <th>Highest Score</th>
                       <th>Monthly Earnings</th>
                       <th>Created At</th>
+                      <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -382,6 +422,16 @@ export default function AdminDashboard() {
                           )}
                         </td>
                         <td>{new Date(usr.created_at).toLocaleDateString()}</td>
+                        <td>
+                          <button
+                            onClick={() => handleDeleteUser(usr.id, usr.email)}
+                            className="delete-user-btn"
+                            disabled={deletingUserId === usr.id}
+                            title="Delete user"
+                          >
+                            {deletingUserId === usr.id ? 'Deleting...' : 'Delete'}
+                          </button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
