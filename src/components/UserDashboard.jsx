@@ -8,12 +8,21 @@ import './Dashboard.css'
 export default function UserDashboard() {
   const { user, userRole, userProfile, signOut, getDisplayName } = useAuth()
   const navigate = useNavigate()
-  const [activeTab, setActiveTab] = useState('dashboard')
+  // Initialize activeTab from localStorage or default to 'dashboard'
+  const [activeTab, setActiveTab] = useState(() => {
+    const savedTab = localStorage.getItem('userDashboardActiveTab')
+    return savedTab || 'dashboard'
+  })
   const [quizAnswers, setQuizAnswers] = useState({})
   const [quizSubmitted, setQuizSubmitted] = useState(false)
   const [quizScore, setQuizScore] = useState(null)
   const [lastQuizAttempt, setLastQuizAttempt] = useState(null)
   const [loadingQuizData, setLoadingQuizData] = useState(false)
+
+  // Save activeTab to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('userDashboardActiveTab', activeTab)
+  }, [activeTab])
 
   // Redirect if role changes to admin
   useEffect(() => {
@@ -360,6 +369,8 @@ export default function UserDashboard() {
 
       // Update last quiz attempt
       setLastQuizAttempt(data)
+      // Clear reset flag since user has submitted a new quiz
+      localStorage.removeItem('quizResetFlag')
     } catch (error) {
       console.error('Error saving quiz attempt:', error)
       // Still show the score even if save fails
@@ -373,12 +384,20 @@ export default function UserDashboard() {
     setQuizAnswers({})
     setQuizSubmitted(false)
     setQuizScore(null)
+    setLastQuizAttempt(null) // Clear last attempt display so form starts fresh
+    // Set flag to prevent auto-restoring answers on page refresh
+    localStorage.setItem('quizResetFlag', 'true')
+    // Note: All quiz attempts remain in the database - nothing is deleted
+    // The highest score is calculated from all attempts in the database, so it's preserved
   }
 
   // Load last quiz attempt when switching to quiz tab
   useEffect(() => {
     if (activeTab === 'quizzes') {
-      if (lastQuizAttempt && !quizSubmitted) {
+      const quizResetFlag = localStorage.getItem('quizResetFlag')
+      
+      // Only restore last attempt if user hasn't reset the quiz
+      if (lastQuizAttempt && !quizSubmitted && !quizResetFlag) {
         // Show last attempt results
         setQuizSubmitted(true)
         setQuizScore(lastQuizAttempt.score)
@@ -388,9 +407,14 @@ export default function UserDashboard() {
         setQuizSubmitted(false)
         setQuizScore(null)
         setQuizAnswers({})
+      } else if (quizResetFlag) {
+        // User has reset the quiz - keep it fresh
+        setQuizSubmitted(false)
+        setQuizScore(null)
+        setQuizAnswers({})
       }
     }
-  }, [activeTab, lastQuizAttempt, loadingQuizData])
+  }, [activeTab, lastQuizAttempt, loadingQuizData, quizSubmitted])
 
   const getCurrentPageTitle = () => {
     const currentTab = tabs.find(tab => tab.id === activeTab)
