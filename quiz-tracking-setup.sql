@@ -43,3 +43,4 @@ CREATE POLICY "Admins can view all quiz attempts"
 -- Grant necessary permissions
 GRANT SELECT, INSERT ON public.quiz_attempts TO authenticated;
 
+
