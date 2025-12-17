@@ -3,6 +3,9 @@ import { useAuth } from '../contexts/AuthContext'
 import { useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import logo from '../assets/images/logo/Logo.PNG'
+import roofPreviewVideo from '../assets/videos/roofpreview.MOV'
+import highestEarnerImage from '../assets/images/general/HighestEarner1.jpeg'
+import claimFormPdf from '../assets/media/Claim Form.pdf'
 import './Dashboard.css'
 
 export default function UserDashboard() {
@@ -18,6 +21,10 @@ export default function UserDashboard() {
   const [quizScore, setQuizScore] = useState(null)
   const [lastQuizAttempt, setLastQuizAttempt] = useState(null)
   const [loadingQuizData, setLoadingQuizData] = useState(false)
+  const [highestQuizScore, setHighestQuizScore] = useState(null)
+  const [leaderboardData, setLeaderboardData] = useState([])
+  const [loadingLeaderboard, setLoadingLeaderboard] = useState(false)
+  const [userEarnings, setUserEarnings] = useState(null)
 
   // Save activeTab to localStorage whenever it changes
   useEffect(() => {
@@ -35,7 +42,8 @@ export default function UserDashboard() {
     if (!user) return
     try {
       setLoadingQuizData(true)
-      const { data, error } = await supabase
+      // Fetch last quiz attempt
+      const { data: lastAttempt, error: lastError } = await supabase
         .from('quiz_attempts')
         .select('*')
         .eq('user_id', user.id)
@@ -43,10 +51,27 @@ export default function UserDashboard() {
         .limit(1)
         .single()
 
-      if (error && error.code !== 'PGRST116') { // PGRST116 is "no rows returned"
-        console.error('Error fetching quiz attempt:', error)
-      } else if (data) {
-        setLastQuizAttempt(data)
+      if (lastError && lastError.code !== 'PGRST116') { // PGRST116 is "no rows returned"
+        console.error('Error fetching quiz attempt:', lastError)
+      } else if (lastAttempt) {
+        setLastQuizAttempt(lastAttempt)
+      }
+
+      // Fetch highest quiz score
+      const { data: allAttempts, error: attemptsError } = await supabase
+        .from('quiz_attempts')
+        .select('score')
+        .eq('user_id', user.id)
+        .order('score', { ascending: false })
+        .limit(1)
+        .single()
+
+      if (attemptsError && attemptsError.code !== 'PGRST116') {
+        console.error('Error fetching highest score:', attemptsError)
+      } else if (allAttempts) {
+        setHighestQuizScore(allAttempts.score)
+      } else {
+        setHighestQuizScore(null)
       }
     } catch (error) {
       console.error('Error fetching quiz attempt:', error)
@@ -61,6 +86,79 @@ export default function UserDashboard() {
       fetchLastQuizAttempt()
     }
   }, [user])
+
+  const fetchLeaderboard = async () => {
+    if (!user) return
+    try {
+      setLoadingLeaderboard(true)
+      const currentMonth = new Date().toISOString().slice(0, 7) // Format: YYYY-MM
+      
+      // Fetch leaderboard for current month
+      const { data: earningsData, error: earningsError } = await supabase
+        .from('leaderboard_earnings')
+        .select('amount, user_id')
+        .eq('month_year', currentMonth)
+        .order('amount', { ascending: false })
+
+      if (earningsError) throw earningsError
+
+      if (!earningsData || earningsData.length === 0) {
+        setLeaderboardData([])
+        setUserEarnings(0)
+        return
+      }
+
+      // Fetch user profiles for all users in leaderboard
+      const userIds = earningsData.map(entry => entry.user_id)
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('user_profiles')
+        .select('id, first_name, last_name, email')
+        .in('id', userIds)
+
+      if (profilesError) {
+        console.error('Error fetching user profiles:', profilesError)
+      }
+
+      // Create a map of user_id to profile
+      const profilesMap = {}
+      if (profilesData) {
+        profilesData.forEach(profile => {
+          profilesMap[profile.id] = profile
+        })
+      }
+
+      // Format leaderboard data
+      const formatted = earningsData.map((entry, index) => {
+        const profile = profilesMap[entry.user_id]
+        return {
+          rank: index + 1,
+          userId: entry.user_id,
+          name: profile?.first_name && profile?.last_name
+            ? `${profile.first_name} ${profile.last_name}`
+            : profile?.first_name || profile?.email || 'Unknown',
+          amount: parseFloat(entry.amount) || 0,
+          isCurrentUser: entry.user_id === user.id
+        }
+      })
+
+      setLeaderboardData(formatted)
+
+      // Get current user's earnings
+      const userEntry = formatted.find(entry => entry.isCurrentUser)
+      setUserEarnings(userEntry ? userEntry.amount : 0)
+    } catch (error) {
+      console.error('Error fetching leaderboard:', error)
+    } finally {
+      setLoadingLeaderboard(false)
+    }
+  }
+
+  // Fetch leaderboard when switching to leaderboard tab or dashboard tab
+  useEffect(() => {
+    if ((activeTab === 'leaderboard' || activeTab === 'dashboard') && user) {
+      fetchLeaderboard()
+    }
+  }, [activeTab, user])
 
   const handleLogout = async () => {
     try {
@@ -369,6 +467,10 @@ export default function UserDashboard() {
 
       // Update last quiz attempt
       setLastQuizAttempt(data)
+      // Update highest score if this is a new record
+      if (!highestQuizScore || score > highestQuizScore) {
+        setHighestQuizScore(score)
+      }
       // Clear reset flag since user has submitted a new quiz
       localStorage.removeItem('quizResetFlag')
     } catch (error) {
@@ -391,7 +493,14 @@ export default function UserDashboard() {
     // The highest score is calculated from all attempts in the database, so it's preserved
   }
 
-  // Load last quiz attempt when switching to quiz tab
+  // Fetch quiz data when switching to quiz tab
+  useEffect(() => {
+    if (activeTab === 'quizzes' && user) {
+      fetchLastQuizAttempt()
+    }
+  }, [activeTab, user])
+
+  // Load last quiz attempt display when switching to quiz tab
   useEffect(() => {
     if (activeTab === 'quizzes') {
       const quizResetFlag = localStorage.getItem('quizResetFlag')
@@ -437,7 +546,57 @@ export default function UserDashboard() {
             
             <div className="dashboard-card">
               <h2>Welcome!</h2>
-              <p>This is your user dashboard. You can add more content here based on your application needs.</p>
+              <p className="welcome-instruction">
+                If you haven't yet, watch the videos in the Video Library and take the quiz to test your knowledge.
+              </p>
+              <div className="dashboard-welcome-content">
+                {/* Top 3 Leaderboard Snippet */}
+                <div className="leaderboard-snippet">
+                  <h3>Top 3 Leaderboard</h3>
+                  {loadingLeaderboard ? (
+                    <p>Loading...</p>
+                  ) : leaderboardData.length > 0 ? (
+                    <div className="leaderboard-snippet-list">
+                      {leaderboardData.slice(0, 3).map((entry) => (
+                        <div key={entry.userId} className="leaderboard-snippet-item">
+                          <span className="snippet-rank">
+                            {entry.rank === 1 && '🥇'}
+                            {entry.rank === 2 && '🥈'}
+                            {entry.rank === 3 && '🥉'}
+                          </span>
+                          <span className="snippet-name">{entry.name}</span>
+                          <span className="snippet-amount">${entry.amount.toFixed(2)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p>No leaderboard data available.</p>
+                  )}
+                </div>
+
+                {/* Roof Preview Video */}
+                <div className="dashboard-video-container">
+                  <h3>Roof Preview</h3>
+                  <video
+                    className="dashboard-preview-video"
+                    controls
+                    src={roofPreviewVideo}
+                    type="video/quicktime"
+                  >
+                    Your browser does not support the video tag.
+                  </video>
+                </div>
+
+                {/* Highest Earner Image */}
+                <div className="dashboard-image-container">
+                  <h3>Last Month's Highest Earner</h3>
+                  <img
+                    src={highestEarnerImage}
+                    alt="Last Month's Highest Earner"
+                    className="dashboard-featured-image"
+                  />
+                </div>
+              </div>
             </div>
           </>
         )
@@ -474,12 +633,38 @@ export default function UserDashboard() {
           </div>
         )
       case 'quizzes':
+        const MIN_PASS_SCORE = 75
+        const hasPassed = highestQuizScore !== null && highestQuizScore >= MIN_PASS_SCORE
+        
         return (
           <div className="dashboard-card">
             <h2 className="quiz-title">Training Quiz</h2>
             <p className="quiz-description">
               Answer all questions below. Once you've completed all questions, click "Submit Quiz" at the bottom to see your score.
             </p>
+            
+            {/* Highest Score Display */}
+            <div className={`quiz-highest-score-display ${hasPassed ? 'passed' : 'not-passed'}`}>
+              <div className="highest-score-content">
+                <div className="highest-score-info">
+                  <h3>Your Highest Score</h3>
+                  {highestQuizScore !== null ? (
+                    <div className="score-status">
+                      <span className="highest-score-value">{highestQuizScore}%</span>
+                      <span className={`pass-status ${hasPassed ? 'passed' : 'not-passed'}`}>
+                        {hasPassed ? '✓ Passed' : '✗ Not Passed'}
+                      </span>
+                    </div>
+                  ) : (
+                    <p className="no-attempts">No quiz attempts yet</p>
+                  )}
+                </div>
+                <div className="pass-requirement">
+                  <p className="requirement-text">Minimum score to pass: <strong>{MIN_PASS_SCORE}%</strong></p>
+                </div>
+              </div>
+            </div>
+
             <div className="quiz-container">
               {quizQuestions.map((q) => (
                 <div key={q.id} className="quiz-question">
@@ -562,13 +747,74 @@ export default function UserDashboard() {
       case 'leaderboard':
         return (
           <div className="dashboard-card">
-            <p>Leaderboard rankings will appear here.</p>
+            <h2>Monthly Leaderboard</h2>
+            <p className="leaderboard-month">
+              {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+            </p>
+            {loadingLeaderboard ? (
+              <p>Loading leaderboard...</p>
+            ) : (
+              <>
+                {userEarnings !== null && (
+                  <div className="user-earnings-display">
+                    <h3>Your Earnings: ${userEarnings.toFixed(2)}</h3>
+                  </div>
+                )}
+                {leaderboardData.length > 0 ? (
+                  <div className="leaderboard-table">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Rank</th>
+                          <th>Name</th>
+                          <th>Earnings</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {leaderboardData.map((entry) => (
+                          <tr
+                            key={entry.userId}
+                            className={entry.isCurrentUser ? 'current-user-row' : ''}
+                          >
+                            <td className="rank-cell">
+                              {entry.rank === 1 && '🥇'}
+                              {entry.rank === 2 && '🥈'}
+                              {entry.rank === 3 && '🥉'}
+                              {entry.rank > 3 && entry.rank}
+                            </td>
+                            <td>{entry.name}</td>
+                            <td className="earnings-cell">${entry.amount.toFixed(2)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <p>No leaderboard data available for this month.</p>
+                )}
+              </>
+            )}
           </div>
         )
       case 'downloads':
         return (
           <div className="dashboard-card">
-            <p>Downloadable resources will appear here.</p>
+            <h2>Downloads</h2>
+            <div className="downloads-list">
+              <div className="download-item">
+                <div className="download-info">
+                  <h3>Sample claim form</h3>
+                  <p className="download-description">Download the sample claim form PDF</p>
+                </div>
+                <a
+                  href={claimFormPdf}
+                  download="Sample Claim Form.pdf"
+                  className="download-button"
+                >
+                  Download
+                </a>
+              </div>
+            </div>
           </div>
         )
       case 'settings':

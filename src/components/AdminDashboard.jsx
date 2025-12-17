@@ -11,9 +11,15 @@ export default function AdminDashboard() {
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
+  const [leaderboardData, setLeaderboardData] = useState([])
+  const [loadingLeaderboard, setLoadingLeaderboard] = useState(false)
+  const [editingEarnings, setEditingEarnings] = useState({}) // { userId: amount }
+  const [activeSection, setActiveSection] = useState('users') // 'users' or 'leaderboard'
+  const [addingAmounts, setAddingAmounts] = useState({}) // { userId: amountToAdd }
 
   useEffect(() => {
     fetchUsers()
+    fetchLeaderboard()
   }, [])
 
   const fetchUsers = async () => {
@@ -45,10 +51,30 @@ export default function AdminDashboard() {
         })
       }
 
-      // Add highest score to each user
+      // Fetch current month earnings for each user
+      const currentMonth = new Date().toISOString().slice(0, 7)
+      const { data: earningsData, error: earningsError } = await supabase
+        .from('leaderboard_earnings')
+        .select('user_id, amount')
+        .eq('month_year', currentMonth)
+
+      if (earningsError) {
+        console.error('Error fetching earnings:', earningsError)
+      }
+
+      // Create a map of user_id to earnings
+      const userEarnings = {}
+      if (earningsData) {
+        earningsData.forEach(entry => {
+          userEarnings[entry.user_id] = parseFloat(entry.amount) || 0
+        })
+      }
+
+      // Add highest score and earnings to each user
       const usersWithScores = (usersData || []).map(user => ({
         ...user,
-        highestScore: highestScores[user.id] !== undefined ? highestScores[user.id] : null
+        highestScore: highestScores[user.id] !== undefined ? highestScores[user.id] : null,
+        earnings: userEarnings[user.id] !== undefined ? userEarnings[user.id] : 0
       }))
 
       setUsers(usersWithScores)
@@ -67,6 +93,141 @@ export default function AdminDashboard() {
       return user.first_name
     }
     return user.email || 'N/A'
+  }
+
+  const fetchLeaderboard = async () => {
+    try {
+      setLoadingLeaderboard(true)
+      const currentMonth = new Date().toISOString().slice(0, 7)
+      
+      const { data: earningsData, error: earningsError } = await supabase
+        .from('leaderboard_earnings')
+        .select('amount, user_id')
+        .eq('month_year', currentMonth)
+        .order('amount', { ascending: false })
+
+      if (earningsError) throw earningsError
+
+      if (!earningsData || earningsData.length === 0) {
+        setLeaderboardData([])
+        return
+      }
+
+      // Fetch user profiles for all users in leaderboard
+      const userIds = earningsData.map(entry => entry.user_id)
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('user_profiles')
+        .select('id, first_name, last_name, email')
+        .in('id', userIds)
+
+      if (profilesError) {
+        console.error('Error fetching user profiles:', profilesError)
+      }
+
+      // Create a map of user_id to profile
+      const profilesMap = {}
+      if (profilesData) {
+        profilesData.forEach(profile => {
+          profilesMap[profile.id] = profile
+        })
+      }
+
+      // Format leaderboard data
+      const formatted = earningsData.map((entry, index) => {
+        const profile = profilesMap[entry.user_id]
+        return {
+          rank: index + 1,
+          userId: entry.user_id,
+          name: profile?.first_name && profile?.last_name
+            ? `${profile.first_name} ${profile.last_name}`
+            : profile?.first_name || profile?.email || 'Unknown',
+          amount: parseFloat(entry.amount) || 0
+        }
+      })
+
+      setLeaderboardData(formatted)
+    } catch (error) {
+      console.error('Error fetching leaderboard:', error)
+    } finally {
+      setLoadingLeaderboard(false)
+    }
+  }
+
+  const handleUpdateEarnings = async (userId, amount) => {
+    if (!user) return
+    
+    try {
+      const currentMonth = new Date().toISOString().slice(0, 7)
+      const amountNum = parseFloat(amount) || 0
+
+      // Use upsert to insert or update
+      const { error } = await supabase
+        .from('leaderboard_earnings')
+        .upsert({
+          user_id: userId,
+          amount: amountNum,
+          month_year: currentMonth,
+          updated_by: user.id
+        }, {
+          onConflict: 'user_id,month_year'
+        })
+
+      if (error) throw error
+
+      // Refresh data
+      await fetchUsers()
+      await fetchLeaderboard()
+      setEditingEarnings(prev => {
+        const next = { ...prev }
+        delete next[userId]
+        return next
+      })
+    } catch (error) {
+      console.error('Error updating earnings:', error)
+      alert('Failed to update earnings. Please try again.')
+    }
+  }
+
+  const handleAddToEarnings = async (userId, currentAmount, amountToAdd) => {
+    if (!user) return
+    
+    try {
+      const currentMonth = new Date().toISOString().slice(0, 7)
+      const addAmount = parseFloat(amountToAdd) || 0
+      
+      if (addAmount <= 0) {
+        alert('Please enter a positive amount to add.')
+        return
+      }
+
+      const newAmount = (currentAmount || 0) + addAmount
+
+      // Use upsert to insert or update
+      const { error } = await supabase
+        .from('leaderboard_earnings')
+        .upsert({
+          user_id: userId,
+          amount: newAmount,
+          month_year: currentMonth,
+          updated_by: user.id
+        }, {
+          onConflict: 'user_id,month_year'
+        })
+
+      if (error) throw error
+
+      // Refresh data
+      await fetchUsers()
+      await fetchLeaderboard()
+      setAddingAmounts(prev => {
+        const next = { ...prev }
+        delete next[userId]
+        return next
+      })
+    } catch (error) {
+      console.error('Error adding to earnings:', error)
+      alert('Failed to add earnings. Please try again.')
+    }
   }
 
   const filteredUsers = users.filter((usr) => {
@@ -112,7 +273,23 @@ export default function AdminDashboard() {
           <h2>Admin Panel</h2>
           <p><strong>Your Role:</strong> {userRole ? (userRole === 'admin' ? 'Admin' : 'Trainee') : 'Loading...'}</p>
         </div>
-        
+
+        <div className="admin-section-tabs">
+          <button
+            className={`section-tab ${activeSection === 'users' ? 'active' : ''}`}
+            onClick={() => setActiveSection('users')}
+          >
+            User Management
+          </button>
+          <button
+            className={`section-tab ${activeSection === 'leaderboard' ? 'active' : ''}`}
+            onClick={() => setActiveSection('leaderboard')}
+          >
+            Leaderboard
+          </button>
+        </div>
+
+        {activeSection === 'users' && (
         <div className="dashboard-card">
           <h2>User Management</h2>
           {loading ? (
@@ -136,6 +313,7 @@ export default function AdminDashboard() {
                       <th>Email</th>
                       <th>Role</th>
                       <th>Highest Score</th>
+                      <th>Monthly Earnings</th>
                       <th>Created At</th>
                     </tr>
                   </thead>
@@ -156,6 +334,53 @@ export default function AdminDashboard() {
                             <span className="quiz-score-incomplete">Incomplete</span>
                           )}
                         </td>
+                        <td>
+                          {editingEarnings[usr.id] !== undefined ? (
+                            <div className="earnings-edit-container">
+                              <input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                value={editingEarnings[usr.id]}
+                                onChange={(e) => setEditingEarnings(prev => ({
+                                  ...prev,
+                                  [usr.id]: e.target.value
+                                }))}
+                                className="earnings-input"
+                                autoFocus
+                              />
+                              <button
+                                onClick={() => handleUpdateEarnings(usr.id, editingEarnings[usr.id])}
+                                className="earnings-save-btn"
+                              >
+                                Save
+                              </button>
+                              <button
+                                onClick={() => setEditingEarnings(prev => {
+                                  const next = { ...prev }
+                                  delete next[usr.id]
+                                  return next
+                                })}
+                                className="earnings-cancel-btn"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="earnings-display-container">
+                              <span className="earnings-amount">${(usr.earnings || 0).toFixed(2)}</span>
+                              <button
+                                onClick={() => setEditingEarnings(prev => ({
+                                  ...prev,
+                                  [usr.id]: usr.earnings || 0
+                                }))}
+                                className="earnings-edit-btn"
+                              >
+                                Edit
+                              </button>
+                            </div>
+                          )}
+                        </td>
                         <td>{new Date(usr.created_at).toLocaleDateString()}</td>
                       </tr>
                     ))}
@@ -168,6 +393,101 @@ export default function AdminDashboard() {
             </>
           )}
         </div>
+        )}
+
+        {activeSection === 'leaderboard' && (
+          <div className="dashboard-card">
+            <h2>Monthly Leaderboard</h2>
+            <p className="leaderboard-month">
+              {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+            </p>
+            {loadingLeaderboard ? (
+              <p>Loading leaderboard...</p>
+            ) : (
+              <>
+                {leaderboardData.length > 0 ? (
+                  <div className="leaderboard-table">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Rank</th>
+                          <th>Name</th>
+                          <th>Earnings</th>
+                          <th>Add Amount</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {leaderboardData.map((entry) => (
+                          <tr key={entry.userId}>
+                            <td className="rank-cell">
+                              {entry.rank === 1 && '🥇'}
+                              {entry.rank === 2 && '🥈'}
+                              {entry.rank === 3 && '🥉'}
+                              {entry.rank > 3 && entry.rank}
+                            </td>
+                            <td>{entry.name}</td>
+                            <td className="earnings-cell">${entry.amount.toFixed(2)}</td>
+                            <td>
+                              {addingAmounts[entry.userId] !== undefined ? (
+                                <div className="add-earnings-container">
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    placeholder="0.00"
+                                    value={addingAmounts[entry.userId]}
+                                    onChange={(e) => setAddingAmounts(prev => ({
+                                      ...prev,
+                                      [entry.userId]: e.target.value
+                                    }))}
+                                    className="add-earnings-input"
+                                    autoFocus
+                                  />
+                                  <button
+                                    onClick={() => handleAddToEarnings(
+                                      entry.userId,
+                                      entry.amount,
+                                      addingAmounts[entry.userId]
+                                    )}
+                                    className="add-earnings-btn"
+                                  >
+                                    Add
+                                  </button>
+                                  <button
+                                    onClick={() => setAddingAmounts(prev => {
+                                      const next = { ...prev }
+                                      delete next[entry.userId]
+                                      return next
+                                    })}
+                                    className="add-earnings-cancel-btn"
+                                  >
+                                    Cancel
+                                  </button>
+                                </div>
+                              ) : (
+                                <button
+                                  onClick={() => setAddingAmounts(prev => ({
+                                    ...prev,
+                                    [entry.userId]: ''
+                                  }))}
+                                  className="add-earnings-toggle-btn"
+                                >
+                                  + Add
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <p>No leaderboard data available for this month.</p>
+                )}
+              </>
+            )}
+          </div>
+        )}
       </main>
     </div>
   )
