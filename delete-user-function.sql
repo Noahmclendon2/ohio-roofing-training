@@ -28,3 +28,5 @@ $$;
 -- Grant execute permission to authenticated users (the function itself checks for admin)
 GRANT EXECUTE ON FUNCTION public.delete_user(UUID) TO authenticated;
 
+
+

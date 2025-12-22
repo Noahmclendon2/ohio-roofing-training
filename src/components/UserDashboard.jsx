@@ -211,223 +211,223 @@ export default function UserDashboard() {
   const quizQuestions = [
     {
       id: 1,
-      question: '"Work like someone is trying to take it all away from you" primarily means:',
+      question: 'What is the FIRST step when getting onto a roof for inspection?',
       options: [
-        'A) Avoid competition by switching industries often',
-        'B) Outwork others and stay more prepared than competitors',
-        'C) Focus only on networking',
-        'D) Let your team handle the hard work'
+        'A) Start marking hail hits on shingles',
+        'B) Identify and document what the entire roof looks like',
+        'C) Remove a damaged shingle',
+        'D) Measure roof slope'
       ],
       correctAnswer: 'B'
     },
     {
       id: 2,
-      question: 'The #1 reasons people fail (video 1) are:',
+      question: 'Why should inspectors take photos from the rear, front, left, and right sides of the roof?',
       options: [
-        'A) Bad luck and bad timing',
-        'B) Lack of money and lack of connections',
-        'C) Lack of brains and lack of effort',
-        'D) Too much competition and too many rules'
+        'A) To meet marketing requirements',
+        'B) To show how steep the roof is',
+        'C) To clearly document roof layout and elevations',
+        'D) To estimate roof age'
       ],
       correctAnswer: 'C'
     },
     {
       id: 3,
-      question: 'In business, you are "never in a vacuum" because:',
+      question: 'Why is extensive photo documentation important during an inspection?',
       options: [
-        'A) Customers always prefer the cheapest option',
-        'B) There will almost always be competition',
-        'C) Marketing doesn\'t work anymore',
-        'D) Employees are the main problem'
+        'A) It speeds up production scheduling only',
+        'B) It allows office staff and adjusters to understand what was observed',
+        'C) It replaces the need for measurements',
+        'D) It avoids having to meet an adjuster'
       ],
       correctAnswer: 'B'
     },
     {
       id: 4,
-      question: 'You\'re likely to lose when:',
+      question: 'Which roof components usually show hail damage most clearly?',
       options: [
-        'A) Your competitors know less than you do',
-        'B) You have a nicer website than others',
-        'C) Competitors know more about the business/customers than you do',
-        'D) You have too many product options'
+        'A) Ridge shingles',
+        'B) Underlayment',
+        'C) Soft metals (vents, flashing, stacks)',
+        'D) Attic insulation'
       ],
       correctAnswer: 'C'
     },
     {
       id: 5,
-      question: 'The questions you ask reveal most about your:',
+      question: 'Why might an inspector use chalk on a metal vent?',
       options: [
-        'A) Personality type',
-        'B) Preparation and knowledge',
-        'C) Social status',
-        'D) Creativity'
+        'A) To clean dirt off',
+        'B) To seal the vent',
+        'C) To highlight hail impacts for photos',
+        'D) To mark installation date'
       ],
-      correctAnswer: 'B'
+      correctAnswer: 'C'
     },
     {
       id: 6,
-      question: 'Asking "basic questions you should\'ve already known" tends to:',
+      question: 'When documenting a dent in a vent, why is a tape measure used in the photo?',
       options: [
-        'A) Impress experienced entrepreneurs',
-        'B) Disqualify you more than almost anything else',
-        'C) Prove you\'re humble',
-        'D) Make you seem confident'
+        'A) To confirm vent type',
+        'B) To show the scale and size of hail damage',
+        'C) To determine roof square count',
+        'D) To measure roof pitch'
       ],
       correctAnswer: 'B'
     },
     {
       id: 7,
-      question: 'Cuban says the greatest source of "paranoia" should be:',
+      question: 'Why should the LARGEST hail dent often be used as the main point of reference?',
       options: [
-        'A) New employees',
-        'B) Social media',
-        'C) Knowledge and learning',
-        'D) Customers\' moods'
+        'A) It looks better in photos',
+        'B) It simplifies pricing',
+        'C) It clearly demonstrates storm severity',
+        'D) It determines roof age'
       ],
       correctAnswer: 'C'
     },
     {
       id: 8,
-      question: 'A "healthy dose of paranoia" means you should:',
+      question: 'Why is the way turtle vents are nailed important during inspection?',
       options: [
-        'A) Ignore competitors to stay focused',
-        'B) Assume everyone is cheating',
-        'C) Anticipate how others could beat you before they do',
-        'D) Only copy what others do'
+        'A) It affects attic airflow',
+        'B) Replacing vents can damage shingles underneath due to nail holes',
+        'C) It changes manufacturer warranties',
+        'D) It improves wind resistance'
       ],
-      correctAnswer: 'C'
+      correctAnswer: 'B'
     },
     {
       id: 9,
-      question: 'Cuban\'s view on "drop out of school" advice is:',
+      question: 'When multiple vents exist on a roof, the best documentation practice is to:',
       options: [
-        'A) It\'s always correct',
-        'B) It\'s correct for most people',
-        'C) People who say that are idiots',
-        'D) It depends on your GPA'
+        'A) Photograph only one vent',
+        'B) Count and label the total number of vents',
+        'C) Remove one vent for testing',
+        'D) Estimate the number visually'
       ],
-      correctAnswer: 'C'
+      correctAnswer: 'B'
     },
     {
       id: 10,
-      question: 'Understanding accounting/finance matters because:',
+      question: 'What is the purpose of identifying the size and type of pipe stacks on a roof?',
       options: [
-        'A) It replaces sales skills',
-        'B) It\'s the language of business and affects decisions (profit vs cash, etc.)',
-        'C) It guarantees funding',
-        'D) It makes competition irrelevant'
+        'A) To calculate labor rates',
+        'B) To document materials that may need replacement',
+        'C) To determine insulation type',
+        'D) To confirm code compliance only'
       ],
       correctAnswer: 'B'
     },
     {
       id: 11,
-      question: 'The most important thing Cuban says he learned in college was:',
+      question: 'Why do neoprene stacks often fail sooner than lead stacks?',
       options: [
-        'A) How to network',
-        'B) How to market',
-        'C) How to learn',
-        'D) How to code'
+        'A) They are thinner and degrade faster',
+        'B) They attract more hail',
+        'C) They are installed incorrectly by default',
+        'D) They are decorative'
+      ],
+      correctAnswer: 'A'
+    },
+    {
+      id: 12,
+      question: 'If tar is present on roof components, why must it be addressed during repairs?',
+      options: [
+        'A) It improves sealing',
+        'B) It prevents inspection photos',
+        'C) It must be removed to properly replace or reset components',
+        'D) It voids insurance coverage'
       ],
       correctAnswer: 'C'
     },
     {
-      id: 12,
-      question: 'For growing a business faster, the key first step is:',
-      options: [
-        'A) Perfecting the product before selling',
-        'B) Getting the first customer commitment',
-        'C) Hiring a big sales team immediately',
-        'D) Raising money before testing demand'
-      ],
-      correctAnswer: 'B'
-    },
-    {
       id: 13,
-      question: 'Before doing a detailed roof damage inspection, you should first:',
+      question: 'What is a "square" in roof inspection terminology?',
       options: [
-        'A) Start circling hail hits',
-        'B) Identify/document what the roof looks like from multiple sides/angles',
-        'C) Remove shingles to check underneath',
-        'D) Only inspect the front elevation'
+        'A) A single shingle',
+        'B) A roof slope',
+        'C) A 10 ft × 10 ft (100 sq ft) test area',
+        'D) A bundle of shingles'
       ],
-      correctAnswer: 'B'
+      correctAnswer: 'C'
     },
     {
       id: 14,
-      question: '"Picture, picture, picture" and labeling roof sides (front/rear/left/right) is mainly to:',
+      question: 'Why is a square marked during hail inspection?',
       options: [
-        'A) Make the roof look worse',
-        'B) Ensure anyone reviewing understands what you saw and where it was',
-        'C) Avoid needing measurements',
-        'D) Replace the need for written notes'
+        'A) To estimate roof pitch',
+        'B) To create a representative sample of damage on an elevation',
+        'C) To identify installation errors',
+        'D) To locate leaks'
       ],
       correctAnswer: 'B'
     },
     {
       id: 15,
-      question: 'Soft metals are checked early because:',
+      question: 'Why do inspectors often mark hail hits with dots instead of circles?',
       options: [
-        'A) They\'re easiest to replace',
-        'B) They show the most visible signs of hail damage',
-        'C) They determine the policy type',
-        'D) They stop leaks instantly'
+        'A) Dots are easier to see',
+        'B) It saves chalk',
+        'C) Some adjusters prefer not to have the roof fully circled',
+        'D) Circles are inaccurate'
       ],
-      correctAnswer: 'B'
+      correctAnswer: 'C'
     },
     {
       id: 16,
-      question: 'A good way to visually reveal hail hits on vents is to:',
+      question: 'What causes long-term functional damage when hail removes shingle granules?',
       options: [
-        'A) Spray water and wait',
-        'B) Use chalk and rub it across the vent to highlight impacts',
-        'C) Paint the vent',
-        'D) Kick debris off the vent'
+        'A) Water immediately penetrates the roof',
+        'B) UV exposure degrades the asphalt over time',
+        'C) Wind resistance increases',
+        'D) Shingles become heavier'
       ],
       correctAnswer: 'B'
     },
     {
       id: 17,
-      question: 'Using a tape measure on a dent is mainly to:',
+      question: 'Why is hail damage considered BOTH cosmetic and functional?',
       options: [
-        'A) Prove the roofer owns a tape measure',
-        'B) Show the size/scale of the damage clearly in photos',
-        'C) Determine roof age',
-        'D) Count total shingles'
+        'A) It changes roof color and slope',
+        'B) It looks bad and shortens shingle lifespan',
+        'C) It affects attic temperature and noise',
+        'D) It causes instant leaks'
       ],
       correctAnswer: 'B'
     },
     {
       id: 18,
-      question: 'The vent nailing detail matters because:',
+      question: 'What is the correct chronological order for determining repairability?',
       options: [
-        'A) It changes the roof pitch',
-        'B) Replacing the vent can require addressing shingles underneath due to nail holes',
-        'C) It voids all warranties automatically',
-        'D) It guarantees full roof replacement'
+        'A) Repairability test → brilliance test → visual inspection',
+        'B) Visual inspection → brilliance test → repairability test',
+        'C) Brilliance test → repairability test → visual inspection',
+        'D) Only a repairability test is needed'
       ],
       correctAnswer: 'B'
     },
     {
       id: 19,
-      question: 'The correct order for determining repairability is:',
+      question: 'Why does the repairability test require lifting shingles multiple times?',
       options: [
-        'A) True repairability test → brilliance test → visual inspection',
-        'B) Visual inspection → brilliance test → true repairability test',
-        'C) Brilliance test → visual inspection → true repairability test',
-        'D) Only the brilliance test is needed'
+        'A) To speed up installation',
+        'B) To simulate a real repair process',
+        'C) To increase roof damage intentionally',
+        'D) To meet manufacturer requirements'
       ],
       correctAnswer: 'B'
     },
     {
       id: 20,
-      question: 'A "ghost product" tactic works mainly because it:',
+      question: 'What does tearing or creasing during a repairability test demonstrate?',
       options: [
-        'A) Adds pressure by raising prices',
-        'B) Builds trust by acting in the buyer\'s interest (often giving away low-margin items)',
-        'C) Avoids explaining how to use products',
-        'D) Confuses the buyer into buying more'
+        'A) Poor workmanship only',
+        'B) The roof is repairable',
+        'C) The roof is not genuinely repairable',
+        'D) The roof needs cleaning'
       ],
-      correctAnswer: 'B'
+      correctAnswer: 'C'
     }
   ]
 
